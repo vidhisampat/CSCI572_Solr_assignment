@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>Simple markers</title>
+    <style>
+      html, body, #map-canvas {
+        height: 100%;
+        margin: 0px;
+        padding: 0px
+      }
+    </style>
+    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
+    <script>
+function initialize() {
+
+	var phpURL = "http://localhost/map.php/?query=" + document.getElementById('query').value;
+        var xmlHttpReq = false;
+	var myLatlng;        
+	if (window.XMLHttpRequest) { 
+            xmlHttpReq = new XMLHttpRequest(); 
+        } else if (window.ActiveXObject) { 
+            xmlHttpReq = new ActiveXObject("Microsoft.XMLHTTP");
+        }
+        xmlHttpReq.open('GET', phpURL, true);
+        xmlHttpReq.setRequestHeader('Content-Type', 'application/xml');
+        xmlHttpReq.onreadystatechange = function() {
+            if ((xmlHttpReq.readyState == 4) &&(xmlHttpReq.status==200)) {
+        
+	//alert("hello");
+      //  alert(xmlHttpReq.responseText);
+		parser=new DOMParser();
+		xmlDoc=parser.parseFromString(xmlHttpReq.responseText,"text/xml");
+		var x=xmlDoc.getElementsByTagName("doc");
+
+		var mapOptions = {
+    		zoom: 4,
+    		center: new google.maps.LatLng(39.50, -98.35)
+  		}
+  		var map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);		
+                
+		
+		for (var i=0;i<x.length;i++)
+		{
+		var lat = x[i].getElementsByTagName("float")[0].childNodes[0].nodeValue;		
+		var long = x[i].getElementsByTagName("float")[1].childNodes[0].nodeValue;
+  		
+		var info = x[i].childNodes[7].childNodes[0].nodeValue;
+		var myLatlng = new google.maps.LatLng(lat,long);
+  		var marker = new google.maps.Marker({
+      		position: myLatlng,
+      		map: map,
+      		title: info
+  		});
+		}
+          } 
+        };
+        xmlHttpReq.send();		
+	}
+	google.maps.event.addDomListener(button, 'click', initialize);
+    </script>
+  </head>
+  <body>
+  <form name="myform">
+  Enter value: <input type="text" id="query" value="Enter Keyword">
+  <input type="button" value="Search" onClick="initialize();">
+  </form>
+    <div id="map-canvas"></div>
+  </body>
+</html>
